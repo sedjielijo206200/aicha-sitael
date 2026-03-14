@@ -58,6 +58,32 @@ app.post('/chat', async (req, res) => {
     res.status(500).json({ reply: "Désolée, un problème technique est survenu." });
   }
 });
-
+app.post('/whatsapp', async (req, res) => {
+  const message = req.body.Body;
+  const from = req.body.From;
+  if (!conversations[from]) conversations[from] = [];
+  conversations[from].push({ role: 'user', content: message });
+  try {
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: SITAEL_CONTEXT,
+      messages: conversations[from]
+    }, {
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json'
+      }
+    });
+    const reply = response.data.content[0].text;
+    conversations[from].push({ role: 'assistant', content: reply });
+    const twiml = `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${reply}</Message></Response>`;
+    res.type('text/xml').send(twiml);
+  } catch(e) {
+    console.error(e.response?.data || e.message);
+    res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response><Message>Désolée, un problème est survenu.</Message></Response>`);
+  }
+});
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Aïcha tourne sur le port ${PORT}`));
