@@ -6,6 +6,7 @@ const axios = require('axios');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
 const SITAEL_CONTEXT = `Tu es Aïcha, l'assistante commerciale virtuelle de SITAEL, une entreprise basée à Abidjan, Côte d'Ivoire, spécialisée dans le carrelage, sanitaires, robinetterie et mobiliers de salle de bain.
