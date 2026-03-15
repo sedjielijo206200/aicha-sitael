@@ -40,7 +40,7 @@ priorite: 'normal',
 heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
 });
 res.json({ reply: reply });
-```
+
 } catch (e) {
 console.error(e.message);
 res.status(500).json({ reply: "Desolee, un probleme technique est survenu." });
