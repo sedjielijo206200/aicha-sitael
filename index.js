@@ -29,7 +29,18 @@ headers: {
 });
 var reply = response.data.content[0].text;
 conversations[sessionId].push({ role: 'assistant', content: reply });
+conversationLogs.unshift({
+id: Date.now(),
+canal: 'whatsapp',
+numero: sessionId,
+nom: 'Visiteur web',
+resume: 'Client: ' + message.substring(0, 80),
+action: 'Verifier si suivi necessaire',
+priorite: 'normal',
+heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+});
 res.json({ reply: reply });
+```
 } catch (e) {
 console.error(e.message);
 res.status(500).json({ reply: "Desolee, un probleme technique est survenu." });
