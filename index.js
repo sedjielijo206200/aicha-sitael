@@ -86,5 +86,36 @@ app.post('/whatsapp', async (req, res) => {
     res.type('text/xml').send(`<?xml version="1.0" encoding="UTF-8"?><Response><Message>Désolée, un problème est survenu.</Message></Response>`);
   }
 });
+const conversationLogs = [];
+
+app.post('/vapi-webhook', async (req, res) => {
+  const body = req.body;
+  if (body.message && body.message.type === 'end-of-call-report') {
+    const call = body.message;
+    conversationLogs.unshift({
+      id: Date.now(),
+      canal: 'appel',
+      numero: call.call?.customer?.number || 'Inconnu',
+      nom: call.call?.customer?.number || 'Client inconnu',
+      resume: call.analysis?.summary || 'Appel vocal avec Aïcha',
+      action: 'Rappeler si nécessaire',
+      priorite: 'normal',
+      heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
+    });
+  }
+  res.json({ success: true });
+});
+
+app.get('/conversations', (req, res) => {
+  const demo = conversationLogs.length === 0 ? [
+    { id:1, canal:'whatsapp', numero:'+225 07 XX XX XX', nom:'Kouamé Bernard', resume:'Client intéressé par du carrelage 60x60 pour sa salle de bain. Demande un devis et veut passer au showroom cette semaine.', action:'Préparer devis carrelage 60x60', priorite:'urgent', heure:'09h14' },
+    { id:2, canal:'appel', numero:'+225 05 XX XX XX', nom:'Madame Diabaté', resume:'Cherche des meubles de salle de bain et robinetterie pour un appartement neuf. Budget correct, très intéressée.', action:'Rappeler pour rendez-vous showroom', priorite:'urgent', heure:'10h32' },
+    { id:3, canal:'whatsapp', numero:'+225 01 XX XX XX', nom:'Client inconnu', resume:'Demande les horaires du showroom et l\'adresse exacte. Aïcha a fourni toutes les informations.', action:'Aucune action requise', priorite:'normal', heure:'11h05' },
+    { id:4, canal:'appel', numero:'+212 06 XX XX XX', nom:'M. Rachid (Maroc)', resume:'Appel depuis le Maroc, cherche des informations sur les marques disponibles. Intéressé par Formigres.', action:'Envoyer catalogue par email', priorite:'moyen', heure:'14h20' },
+    { id:5, canal:'whatsapp', numero:'+225 07 XX XX XX', nom:'Entreprise BTP Abidjan', resume:'Commande potentielle importante — carrelage pour 3 immeubles en construction. Demande un rendez-vous urgent.', action:'URGENT — Contacter le directeur', priorite:'urgent', heure:'15h45' }
+  ] : conversationLogs;
+  res.json({ conversations: demo });
+});
+```
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Aïcha tourne sur le port ${PORT}`));

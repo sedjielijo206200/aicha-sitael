@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Aïcha SITAEL</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0a0a0a; color: #f0ede8; min-height: 100vh; }
+  .header { background: #1a0a00; border-bottom: 1px solid rgba(196,140,60,0.3); padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 20px; color: #e8b86d; }
+  .header p { font-size: 12px; color: rgba(196,140,60,0.6); margin-top: 2px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 24px; }
+  .stat { background: #1a0a00; border: 1px solid rgba(196,140,60,0.2); border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-num { font-size: 32px; font-weight: bold; color: #e8b86d; }
+  .stat-label { font-size: 12px; color: rgba(196,140,60,0.6); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .section { padding: 0 24px 24px; }
+  .section-title { font-size: 14px; color: rgba(196,140,60,0.8); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+  .conv-card { background: #1a0a00; border: 1px solid rgba(196,140,60,0.2); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; gap: 14px; align-items: flex-start; cursor: pointer; transition: border-color 0.2s; }
+  .conv-card:hover { border-color: rgba(196,140,60,0.5); }
+  .conv-card.urgent { border-left: 3px solid #ef4444; }
+  .conv-card.normal { border-left: 3px solid #4ade80; }
+  .conv-card.moyen { border-left: 3px solid #f59e0b; }
+  .conv-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon-whatsapp { background: rgba(74,222,128,0.15); }
+  .icon-appel { background: rgba(196,140,60,0.15); }
+  .conv-info { flex: 1; }
+  .conv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .conv-name { font-size: 14px; font-weight: 600; color: #e8b86d; }
+  .conv-time { font-size: 11px; color: rgba(196,140,60,0.5); }
+  .conv-summary { font-size: 13px; color: rgba(240,237,232,0.8); line-height: 1.5; margin-bottom: 8px; }
+  .conv-action { font-size: 12px; background: rgba(196,140,60,0.1); border: 1px solid rgba(196,140,60,0.2); color: #c48c3c; padding: 4px 10px; border-radius: 20px; display: inline-block; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-left: 8px; }
+  .badge-urgent { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .badge-normal { background: rgba(74,222,128,0.2); color: #4ade80; }
+  .badge-moyen { background: rgba(245,158,11,0.2); color: #f59e0b; }
+  .canal { font-size: 11px; color: rgba(196,140,60,0.5); margin-left: 6px; }
+  .refresh-btn { background: rgba(196,140,60,0.1); border: 1px solid rgba(196,140,60,0.3); color: #c48c3c; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .refresh-btn:hover { background: rgba(196,140,60,0.2); }
+  .empty { text-align: center; padding: 40px; color: rgba(196,140,60,0.4); font-size: 14px; }
+  @media(max-width:600px) { .stats { grid-template-columns: repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Dashboard Aïcha — SITAEL</h1>
+    <p>Vue d'ensemble des conversations et appels</p>
+  </div>
+  <button class="refresh-btn" onclick="loadConversations()">Actualiser</button>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num" id="total">0</div>
+    <div class="stat-label">Total conversations</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="urgents" style="color:#ef4444">0</div>
+    <div class="stat-label">Urgents</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="whatsapps" style="color:#4ade80">0</div>
+    <div class="stat-label">WhatsApp</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="appels" style="color:#c48c3c">0</div>
+    <div class="stat-label">Appels</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Conversations récentes — par priorité</div>
+  <div id="convList"><div class="empty">Aucune conversation pour l'instant...</div></div>
+</div>
+
+<script>
+async function loadConversations() {
+  try {
+    const r = await fetch('/conversations');
+    const data = await r.json();
+    renderConversations(data);
+  } catch(e) {
+    console.log('Chargement...');
+  }
+}
+
+function renderConversations(data) {
+  const list = document.getElementById('convList');
+  const convs = data.conversations || [];
+  
+  document.getElementById('total').textContent = convs.length;
+  document.getElementById('urgents').textContent = convs.filter(c => c.priorite === 'urgent').length;
+  document.getElementById('whatsapps').textContent = convs.filter(c => c.canal === 'whatsapp').length;
+  document.getElementById('appels').textContent = convs.filter(c => c.canal === 'appel').length;
+
+  if(convs.length === 0) {
+    list.innerHTML = '<div class="empty">Aucune conversation pour l\'instant...<br>Les conversations WhatsApp et appels apparaîtront ici automatiquement.</div>';
+    return;
+  }
+
+  const sorted = convs.sort((a,b) => {
+    const p = {urgent:0, moyen:1, normal:2};
+    return (p[a.priorite]||2) - (p[b.priorite]||2);
+  });
+
+  list.innerHTML = sorted.map(c => `
+    <div class="conv-card ${c.priorite}">
+      <div class="conv-icon ${c.canal === 'whatsapp' ? 'icon-whatsapp' : 'icon-appel'}">
+        ${c.canal === 'whatsapp' ? '💬' : '📞'}
+      </div>
+      <div class="conv-info">
+        <div class="conv-header">
+          <div>
+            <span class="conv-name">${c.nom || c.numero}</span>
+            <span class="canal">${c.canal === 'whatsapp' ? 'WhatsApp' : 'Appel'}</span>
+            <span class="badge badge-${c.priorite}">${c.priorite.toUpperCase()}</span>
+          </div>
+          <span class="conv-time">${c.heure}</span>
+        </div>
+        <div class="conv-summary">${c.resume}</div>
+        <div class="conv-action">Action : ${c.action}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+loadConversations();
+setInterval(loadConversations, 30000);
+</script>
+</body>
+</html>
