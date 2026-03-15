@@ -29,16 +29,30 @@ headers: {
 });
 var reply = response.data.content[0].text;
 conversations[sessionId].push({ role: 'assistant', content: reply });
+var resumeResponse = await axios.post('https://api.anthropic.com/v1/messages', {
+model: 'claude-sonnet-4-6',
+max_tokens: 200,
+messages: [{ role: 'user', content: 'Resumes en 1 phrase ce que veut ce client et dis quelle action faire : ' + message }]
+}, {
+headers: {
+'x-api-key': process.env.ANTHROPIC_API_KEY,
+'anthropic-version': '2023-06-01',
+'content-type': 'application/json'
+}
+});
+var resumeTexte = resumeResponse.data.content[0].text;
+var prioriteAuto = message.toLowerCase().includes('urgent') || message.toLowerCase().includes('commande') || message.toLowerCase().includes('devis') ? 'urgent' : 'normal';
 conversationLogs.unshift({
 id: Date.now(),
-canal: 'whatsapp',
+canal: 'chat web',
 numero: sessionId,
 nom: 'Visiteur web',
-resume: 'Client: ' + message,
+resume: resumeTexte,
 action: 'Verifier si suivi necessaire',
-priorite: 'normal',
+priorite: prioriteAuto,
 heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
 });
+
 res.json({ reply: reply });
 
 } catch (e) {
