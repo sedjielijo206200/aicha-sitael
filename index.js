@@ -85,9 +85,9 @@ id: Date.now(),
 canal: 'whatsapp',
 numero: from,
 nom: from.replace('whatsapp:', ''),
-resume: 'Client: ' + message,
+resume: resumeWhatsapp,
 action: 'Verifier si suivi necessaire',
-priorite: 'normal',
+priorite: prioriteWhatsapp,
 heure: new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})
 });
 var twiml = '<?xml version="1.0" encoding="UTF-8"?><Response><Message>' + reply + '</Message></Response>';
@@ -101,6 +101,19 @@ app.post('/vapi-webhook', async function(req, res) {
 var body = req.body;
 if (body.message && body.message.type === 'end-of-call-report') {
 var call = body.message;
+var resumeResp = await axios.post('https://api.anthropic.com/v1/messages', {
+model: 'claude-sonnet-4-6',
+max_tokens: 200,
+messages: [{ role: 'user', content: 'Resumes en 1 phrase ce que veut ce client et dis quelle action faire : ' + message }]
+}, {
+headers: {
+'x-api-key': process.env.ANTHROPIC_API_KEY,
+'anthropic-version': '2023-06-01',
+'content-type': 'application/json'
+}
+});
+var resumeWhatsapp = resumeResp.data.content[0].text;
+var prioriteWhatsapp = message.toLowerCase().includes('urgent') || message.toLowerCase().includes('commande') || message.toLowerCase().includes('devis') ? 'urgent' : 'normal';
 conversationLogs.unshift({
 id: Date.now(),
 canal: 'appel',
