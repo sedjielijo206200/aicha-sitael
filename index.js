@@ -82,7 +82,7 @@ var reply = response.data.content[0].text;
 conversations[from].push({ role: 'assistant', content: reply });
 conversationLogs.unshift({
 id: Date.now(),
-canal: 'whatsapp',
+canal: 'chat',
 numero: from,
 nom: from.replace('whatsapp:', ''),
 resume: resumeWhatsapp,
