@@ -92,7 +92,7 @@ function renderConversations(data) {
   
   document.getElementById('total').textContent = convs.length;
   document.getElementById('urgents').textContent = convs.filter(c => c.priorite === 'urgent').length;
-document.getElementById('whatsapps').textContent = convs.filter(c => c.canal === 'whatsapp' || c.canal === 'chat').length;
+document.getElementById('whatsapps').textContent = convs.filter(c => c.canal === 'whatsapp' || c.canal === 'chat web').length;
   document.getElementById('appels').textContent = convs.filter(c => c.canal === 'appel').length;
 
   if(convs.length === 0) {
@@ -108,7 +108,7 @@ document.getElementById('whatsapps').textContent = convs.filter(c => c.canal ===
   list.innerHTML = sorted.map(c => `
     <div class="conv-card ${c.priorite}">
       <div class="conv-icon ${c.canal === 'whatsapp' ? 'icon-whatsapp' : 'icon-appel'}">
-        ${c.canal === 'whatsapp' || c.canal === 'chat' ? '💬' : '📞'}
+        ${c.canal === 'whatsapp' || c.canal === 'chat web' ? '💬' : '📞'}
       </div>
       <div class="conv-info">
         <div class="conv-header">
