@@ -114,7 +114,7 @@ document.getElementById('whatsapps').textContent = convs.filter(c => c.canal ===
         <div class="conv-header">
           <div>
             <span class="conv-name">${c.nom || c.numero}</span>
-            <span class="canal">${c.canal === 'whatsapp' ? 'WhatsApp' : 'Appel'}</span>
+            <span class="canal">${c.canal === 'whatsapp' ? 'WhatsApp' : c.canal === 'chat web' ? 'Chat web' : 'Appel'}</span>
             <span class="badge badge-${c.priorite}">${c.priorite.toUpperCase()}</span>
           </div>
           <span class="conv-time">${c.heure}</span>
